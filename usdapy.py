@@ -19,12 +19,14 @@ Base.metadata.create_all(engine)
 
 def parse(file_name, row_function):
   with open(args.sr_dir + '/' + file_name) as f:
-    for line in f:
-      fields = line.strip().split(FIELD_DELIMETER)
+    for idx, line in enumerate(f):
+      fields = line.decode('latin-1').strip().split(FIELD_DELIMETER)
       fields = [field.strip(STRING_DELIMETER) for field in fields]
       row = row_function(fields)
       session.add(row)
-  print "Parsed {}".format(file_name)
+      if idx % 1000 == 0:
+        session.commit()
+  session.commit()
 
 parse('FD_GROUP.txt', row_funcs.food_group)
 parse('NUTR_DEF.txt', row_funcs.nutrient_definition)
