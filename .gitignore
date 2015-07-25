@@ -1,2 +1,5 @@
 env
 sr27
+*.pyc
+*.swp
+.DS_Store
