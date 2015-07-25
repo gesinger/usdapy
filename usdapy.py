@@ -12,7 +12,7 @@ parser.add_argument('sr_dir', help='directory of SR DB files')
 parser.add_argument('out_file', help='output file name')
 args = parser.parse_args()
 
-engine = create_engine('sqlite:///:memory:', echo=True)
+engine = create_engine('sqlite:///{}'.format(args.out_file))
 Session = sessionmaker(bind=engine)
 session = Session()
 Base.metadata.create_all(engine)
