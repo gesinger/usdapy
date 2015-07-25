@@ -42,6 +42,4 @@ parse('NUT_DATA.txt', row_funcs.nutrient_data)
 parse('WEIGHT.txt', row_funcs.weight)
 parse('FOOTNOTE.txt', row_funcs.footnote)
 parse('DATA_SRC.txt', row_funcs.data_source)
-parse('DATASRCLN', row_funcs.data_source_link)
-
-session.commit()
+parse('DATSRCLN.txt', row_funcs.data_source_link)
