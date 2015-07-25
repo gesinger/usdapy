@@ -1,12 +1,31 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, String, ForeignKey, SmallInteger, Numeric,
+from sqlalchemy import Column, String, ForeignKey, SmallInteger, Numeric, \
   Integer
+
+Base = declarative_base()
+
+class FoodGroup(Base):
+  __tablename__ = 'food_groups'
+
+  code = Column(String(4), primary_key=True)
+  description = Column(String(60), nullable=False)
+
+class NutrientDefinition(Base):
+  __tablename__ = 'nutrient_definitions'
+
+  nutrient_number = Column(String(3), primary_key=True)
+  units = Column(String(7), nullable=False)
+  tag_name = Column(String(20), nullable=True)
+  nutrient_description = Column(String(60), nullable=False)
+  num_decimals = Column(String(1), nullable=False)
+  sr_order = Column(Integer, nullable=False)
+
 
 class FoodDescription(Base):
   __tablename__ = 'food_descriptions'
 
   ndb_number = Column(String(5), primary_key=True)
-  food_group_code = Column(String(4), ForeignKey(FoodGroup.code)
+  food_group_code = Column(String(4), ForeignKey(FoodGroup.code))
   long_description = Column(String(200), nullable=False)
   short_description = Column(String(60), nullable=False)
   common_name = Column(String(100), nullable=True)
@@ -19,12 +38,6 @@ class FoodDescription(Base):
   protein_factor = Column(Numeric(4, 2), nullable=True)
   fat_factor = Column(Numeric(4, 2), nullable=True)
   carb_factor = Column(Numeric(4, 2), nullable=True)
-
-class FoodGroup(Base):
-  __tablename__ = 'food_groups'
-
-  code = Column(String(4), primary_key=True)
-  description = Column(String(60), nullable=False)
 
 class Langual(Base):
   __tablename__ = 'langual'
@@ -40,6 +53,18 @@ class LangualFactor(Base):
     primary_key=True)
   description = Column(String(140), nullable=False)
 
+class SourceCode(Base):
+  __tablename__ = 'source_codes'
+
+  code = Column(String(2), primary_key=True)
+  description = Column(String(60), nullable=False)
+
+class DerivationCode(Base):
+  __tablename__ = 'derivation_codes'
+
+  code = Column(String(4), primary_key=True)
+  description = Column(String(120), nullable=False)
+
 class NutrientData(Base):
   __tablename__ = 'nutrient_data'
 
@@ -54,7 +79,7 @@ class NutrientData(Base):
   derivation_code = Column(String(4), ForeignKey(DerivationCode.code),
     nullable=True)
   reference_ndb_number = Column(String(5),
-    ForeignKey(FoodDescription.ndb_number), nullable=False)
+    ForeignKey(FoodDescription.ndb_number), nullable=True)
   fortified = Column(String(1), nullable=True)
   num_studies = Column(SmallInteger, nullable=True)
   min_value = Column(Numeric(10, 3), nullable=True)
@@ -65,28 +90,6 @@ class NutrientData(Base):
   stat_comments = Column(String(10), nullable=True)
   last_modified = Column(String(10), nullable=True)
   confidence_code = Column(String(1), nullable=True)
-
-class NutrientDefinition(Base):
-  __tablename__ = 'nutrient_definitions'
-
-  nutrient_number = Column(String(3), primary_key=True)
-  units = Column(String(7), nullable=False)
-  tag_name = Column(String(20), nullable=True)
-  nutrient_description = Column(String(60), nullable=False)
-  num_decimals = Column(String(1), nullable=False)
-  sr_order = Column(Integer, nullable=False)
-
-class SourceCode(Base):
-  __tablename__ = 'source_codes'
-
-  code = Column(String(2), primary_key=True)
-  description = Column(String(60), nullable=False)
-
-class DerivationCode(Base):
-  __tablename__ = 'derivation_codes'
-
-  code = Column(String(4), primary_key=True)
-  description = Column(String(120), nullable=False)
 
 class Weight(Base):
   __tablename__ = 'weights'
@@ -100,26 +103,19 @@ class Weight(Base):
   num_data_points = Column(SmallInteger, nullable=True)
   standard_deviation = Column(Numeric(7, 3), nullable=True)
 
+# Note that there was no primary key defined for the Footnote table. Assumption
+# is made that a composite key can be formed via all but footnote_text and
+# nullable nutrient_number.
 class Footnote(Base):
   __tablename__ = 'footnotes'
 
   ndb_number = Column(String(5), ForeignKey(FoodDescription.ndb_number),
-    nullable=False)
-  footnote_number = Column(String(4), nullable=False)
-  footnote_type = Column(String(1), nullable=False)
+    primary_key=True)
+  footnote_number = Column(String(4), primary_key=True)
+  footnote_type = Column(String(1), primary_key=True)
   nutrient_number = Column(String(3),
     ForeignKey(NutrientDefinition.nutrient_number), nullable=True)
   footnote_text = Column(String(200), nullable=False)
-
-class DataSourceLink(Base):
-  __tablename__ = 'data_sources_link'
-
-  ndb_number = Column(String(5), ForeignKey(FoodDescription.ndb_number),
-    primary_key=True)
-  nutrient_number = Column(String(3),
-    ForeignKey(NutrientDefinition.nutrient_number), primary_key=True)
-  data_source_id = Column(String(6), ForeignKey(DataSource.id),
-    primary_key=True)
 
 class DataSource(Base):
   __tablename__ = 'data_sources'
@@ -133,3 +129,13 @@ class DataSource(Base):
   issue_state = Column(String(5), nullable=True)
   start_page = Column(String(5), nullable=True)
   end_page = Column(String(5), nullable=True)
+
+class DataSourceLink(Base):
+  __tablename__ = 'data_sources_link'
+
+  ndb_number = Column(String(5), ForeignKey(FoodDescription.ndb_number),
+    primary_key=True)
+  nutrient_number = Column(String(3),
+    ForeignKey(NutrientDefinition.nutrient_number), primary_key=True)
+  data_source_id = Column(String(6), ForeignKey(DataSource.id),
+    primary_key=True)
