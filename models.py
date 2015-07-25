@@ -103,16 +103,16 @@ class Weight(Base):
   num_data_points = Column(SmallInteger, nullable=True)
   standard_deviation = Column(Numeric(7, 3), nullable=True)
 
-# Note that there was no primary key defined for the Footnote table. Assumption
-# is made that a composite key can be formed via all but footnote_text and
-# nullable nutrient_number.
 class Footnote(Base):
   __tablename__ = 'footnotes'
 
+  # There was no primary key defined for the Footnote table. ID created for
+  # this purpose
+  id = Column(Integer, primary_key=True,)
   ndb_number = Column(String(5), ForeignKey(FoodDescription.ndb_number),
-    primary_key=True)
-  footnote_number = Column(String(4), primary_key=True)
-  footnote_type = Column(String(1), primary_key=True)
+    nullable=False)
+  footnote_number = Column(String(4), nullable=False)
+  footnote_type = Column(String(1), nullable=False)
   nutrient_number = Column(String(3),
     ForeignKey(NutrientDefinition.nutrient_number), nullable=True)
   footnote_text = Column(String(200), nullable=False)
