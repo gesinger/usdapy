@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Base
 import row_funcs
+import time
 
 STRING_DELIMETER = '~'
 FIELD_DELIMETER = '^'
@@ -18,6 +19,7 @@ session = Session()
 Base.metadata.create_all(engine)
 
 def parse(file_name, row_function):
+  start_time = time.time()
   with open(args.sr_dir + '/' + file_name) as f:
     for idx, line in enumerate(f):
       fields = line.decode('latin-1').strip().split(FIELD_DELIMETER)
@@ -27,6 +29,7 @@ def parse(file_name, row_function):
       if idx % 1000 == 0:
         session.commit()
   session.commit()
+  print "Finished {} in {} seconds".format(file_name, time.time() - start_time)
 
 parse('FD_GROUP.txt', row_funcs.food_group)
 parse('NUTR_DEF.txt', row_funcs.nutrient_definition)
