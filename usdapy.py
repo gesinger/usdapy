@@ -1,20 +1,9 @@
 import argparse
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from models import Base
+import row_funcs
 
-SR_FILE_NAMES = {
-  'FOOD_GROUP': 'FD_GROUP.txt',
-  'DATA_SOURCE': 'DATA_SRC.txt',
-  'DERIVATION_CODE': 'DERIV_CD.txt',
-  'FOOD_DESCRIPTION': 'FOOD_DES.txt',
-  'LANGUAGE_DESCRIPTION': 'LANGDESC.txt',
-  'NUTRIENT_DEFINITION': 'NUTR_DEF.txt',
-  'SOURCE_CODE': 'SRC_CD.txt',
-  'DATA_SOURCE_LINK': 'DATASRCLN.txt',
-  'FOOD_GROUP': 'FD_GROUP.txt',
-  'FOOTNOTE': 'FOOTNOTE.txt',
-  'LANGUAL': 'LANGUAL.txt',
-  'NUTRIENT_DATA': 'NUT_DATA.txt',
-  'WEIGHT': 'WEIGHT.txt',
-}
 STRING_DELIMETER = '~'
 FIELD_DELIMETER = '^'
 
@@ -22,3 +11,32 @@ parser = argparse.ArgumentParser(description='Parser for the USDA SR DB')
 parser.add_argument('sr_dir', help='directory of SR DB files')
 parser.add_argument('out_file', help='output file name')
 args = parser.parse_args()
+
+engine = create_engine('sqlite:///:memory:', echo=True)
+Session = sessionmaker(bind=engine)
+session = Session()
+Base.metadata.create_all(engine)
+
+def parse(file_name, row_function):
+  with open(args.sr_dir + '/' + file_name) as f:
+    for line in f:
+      fields = line.strip().split(FIELD_DELIMETER)
+      fields = [field.strip(STRING_DELIMETER) for field in fields]
+      row = row_function(fields)
+      session.add(row)
+  print "Parsed {}".format(file_name)
+
+parse('FD_GROUP.txt', row_funcs.food_group)
+parse('NUTR_DEF.txt', row_funcs.nutrient_definition)
+parse('FOOD_DES.txt', row_funcs.food_description)
+parse('LANGUAL.txt', row_funcs.langual)
+parse('LANGDESC.txt', row_funcs.langual_factor)
+parse('SRC_CD.txt', row_funcs.source_code)
+parse('DERIV_CD.txt', row_funcs.derivation_code)
+parse('NUT_DATA.txt', row_funcs.nutrient_data)
+parse('WEIGHT.txt', row_funcs.weight)
+parse('FOOTNOTE.txt', row_funcs.footnote)
+parse('DATA_SRC.txt', row_funcs.data_source)
+parse('DATASRCLN', row_funcs.data_source_link)
+
+session.commit()
