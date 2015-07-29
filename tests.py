@@ -164,7 +164,7 @@ class RowFuncTest(unittest.TestCase):
     self.assertEqual(footnote.footnote_text, footnote_text)
 
   def test_data_source(self):
-    id = 'D1066'
+    data_source_id = 'D1066'
     authors = 'G.V. Mann'
     title = 'The Health and Nutritional status of Alaskan Eskimos.'
     year = '1962'
@@ -173,9 +173,10 @@ class RowFuncTest(unittest.TestCase):
     issue_state = ''
     start_page = '31'
     end_page = '76'
-    data_source = row_funcs.data_source([id, authors, title, year, journal,
-      volume_city, issue_state, start_page, end_page])
-    self.assertEqual(data_source.id, id)
+    data_source = row_funcs.data_source([data_source_id, authors, title, year,
+      journal, volume_city, issue_state, start_page, end_page])
+    print data_source.id
+    self.assertEqual(data_source.data_source_id, data_source_id)
     self.assertEqual(data_source.authors, authors)
     self.assertEqual(data_source.title, title)
     self.assertEqual(data_source.year, year)

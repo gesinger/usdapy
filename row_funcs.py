@@ -62,8 +62,8 @@ def footnote(fields):
     footnote_text=fields[4])
 
 def data_source(fields):
-  return DataSource(id=fields[0], authors=fields[1] or None, title=fields[2],
-    year=fields[3] or None, journal=fields[4] or None,
+  return DataSource(data_source_id=fields[0], authors=fields[1] or None,
+    title=fields[2], year=fields[3] or None, journal=fields[4] or None,
     volume_city=fields[5] or None, issue_state=fields[6] or None,
     start_page=fields[7] or None, end_page=fields[8] or None)
 
