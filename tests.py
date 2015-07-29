@@ -1,11 +1,13 @@
 import unittest
-import row_funcs
+from row_funcs import RowParser
 
 class RowFuncTest(unittest.TestCase):
+  row_parser = RowParser()
+
   def test_food_group(self):
     code = '0100'
     description = 'Dairy and Egg Products'
-    food_group = row_funcs.food_group([code, description])
+    food_group = self.row_parser.food_group([code, description])
     self.assertEqual(food_group.code, code)
     self.assertEqual(food_group.description, description)
 
@@ -16,7 +18,7 @@ class RowFuncTest(unittest.TestCase):
     nutrient_description = 'Protein'
     num_decimals = '2'
     sr_order = '600'
-    nutrient_definition = row_funcs.nutrient_definition([nutrient_number,
+    nutrient_definition = self.row_parser.nutrient_definition([nutrient_number,
       units, tag_name, nutrient_description, num_decimals, sr_order])
     self.assertEqual(nutrient_definition.nutrient_number, nutrient_number)
     self.assertEqual(nutrient_definition.units, units)
@@ -29,6 +31,7 @@ class RowFuncTest(unittest.TestCase):
   def test_food_description(self):
     ndb_number = '01001'
     food_group_code = '0100'
+    food_group_id = 1
     long_description = 'Butter, salted'
     short_description= 'BUTTER, WITH SALT'
     common_name = ''
@@ -41,12 +44,15 @@ class RowFuncTest(unittest.TestCase):
     protein_factor = '4.27'
     fat_factor = '8.79'
     carb_factor = '3.87'
-    food_description = row_funcs.food_description([ndb_number, food_group_code,
-      long_description, short_description, common_name, manufacturer_name,
-      survey, refuse_description, refuse_percent, scientific_name,
-      nitrogen_factor, protein_factor, fat_factor, carb_factor])
+    self.row_parser.food_group_code_map[food_group_code] = food_group_id
+    food_description = self.row_parser.food_description([ndb_number,
+      food_group_code, long_description, short_description, common_name,
+      manufacturer_name, survey, refuse_description, refuse_percent,
+      scientific_name, nitrogen_factor, protein_factor, fat_factor,
+      carb_factor])
     self.assertEqual(food_description.ndb_number, ndb_number)
     self.assertEqual(food_description.food_group_code, food_group_code)
+    self.assertEqual(food_description.food_group_id, food_group_id)
     self.assertEqual(food_description.long_description, long_description)
     self.assertEqual(food_description.short_description, short_description)
     self.assertEqual(food_description.common_name, None)
@@ -62,40 +68,53 @@ class RowFuncTest(unittest.TestCase):
 
   def test_langual(self):
     ndb_number = '02001'
+    food_description_id = 2
     factor_code = 'A0113'
-    langual = row_funcs.langual([ndb_number, factor_code])
+    langual_factor_id = 3
+    self.row_parser.food_description_ndb_number_map = {
+      ndb_number: food_description_id
+    }
+    self.row_parser.langual_factor_code_map = {
+      factor_code: langual_factor_id
+    }
+    langual = self.row_parser.langual([ndb_number, factor_code])
     self.assertEqual(langual.ndb_number, ndb_number)
+    self.assertEqual(langual.food_description_id, food_description_id)
     self.assertEqual(langual.factor_code, factor_code)
+    self.assertEqual(langual.langual_factor_id, langual_factor_id)
 
   def test_langual_factor(self):
     factor_code = 'A0107'
     description = 'BAKERY PRODUCT, UNSWEETENED (US CFR)'
-    langual_factor = row_funcs.langual_factor([factor_code, description])
+    langual_factor = self.row_parser.langual_factor([factor_code, description])
     self.assertEqual(langual_factor.factor_code, factor_code)
     self.assertEqual(langual_factor.description, description)
 
   def test_source_code(self):
     code = '1'
     description = 'Analytical or derived from analytical'
-    source_code = row_funcs.source_code([code, description])
+    source_code = self.row_parser.source_code([code, description])
     self.assertEqual(source_code.code, code)
     self.assertEqual(source_code.description, description)
 
   def test_derivation_code(self):
     code = 'A'
     description = 'Analytical data'
-    derivation_code = row_funcs.derivation_code([code, description])
+    derivation_code = self.row_parser.derivation_code([code, description])
     self.assertEqual(derivation_code.code, code)
     self.assertEqual(derivation_code.description, description)
 
   def test_nutrient_data(self):
     ndb_number = '01001'
+    food_description_id = 1
     nutrient_number = '203'
+    nutrient_definition_id = 3
     nutrient_value = '0.85'
     num_data_points = '16'
     standard_error = '0.074'
-    source_code = '1'
-    derivation_code = ''
+    source_code_code = '1'
+    source_code_id = 1
+    derivation_code_code = ''
     reference_ndb_number = ''
     fortified = ''
     num_studies = ''
@@ -107,19 +126,34 @@ class RowFuncTest(unittest.TestCase):
     stat_comments = ''
     last_modified = '11/1976'
     confidence_code = ''
-    nutrient_data = row_funcs.nutrient_data([ndb_number, nutrient_number,
-      nutrient_value, num_data_points, standard_error, source_code,
-      derivation_code, reference_ndb_number, fortified, num_studies, min_value,
-      max_value, degrees_of_freedom, low_error_bound, upper_error_bound,
-      stat_comments, last_modified, confidence_code])
+    self.row_parser.food_description_ndb_number_map = {
+      ndb_number: food_description_id
+    }
+    self.row_parser.nutrient_definition_nutrient_number_map = {
+      nutrient_number: nutrient_definition_id
+    }
+    self.row_parser.source_code_code_map = {
+      source_code_code: source_code_id
+    }
+    nutrient_data = self.row_parser.nutrient_data([ndb_number, nutrient_number,
+      nutrient_value, num_data_points, standard_error, source_code_code,
+      derivation_code_code, reference_ndb_number, fortified, num_studies,
+      min_value, max_value, degrees_of_freedom, low_error_bound,
+      upper_error_bound, stat_comments, last_modified, confidence_code])
     self.assertEqual(nutrient_data.ndb_number, ndb_number)
+    self.assertEqual(nutrient_data.food_description_id, food_description_id)
     self.assertEqual(nutrient_data.nutrient_number, nutrient_number)
+    self.assertEqual(nutrient_data.nutrient_definition_id,
+      nutrient_definition_id)
     self.assertEqual(nutrient_data.nutrient_value, float(nutrient_value))
     self.assertEqual(nutrient_data.num_data_points, int(num_data_points))
     self.assertEqual(nutrient_data.standard_error, float(standard_error))
-    self.assertEqual(nutrient_data.source_code, source_code)
-    self.assertEqual(nutrient_data.derivation_code, None)
+    self.assertEqual(nutrient_data.source_code_code, source_code_code)
+    self.assertEqual(nutrient_data.source_code_id, source_code_id)
+    self.assertEqual(nutrient_data.derivation_code_code, None)
+    self.assertEqual(nutrient_data.derivation_code_id, None)
     self.assertEqual(nutrient_data.reference_ndb_number, None)
+    self.assertEqual(nutrient_data.reference_food_description_id, None)
     self.assertEqual(nutrient_data.fortified, None)
     self.assertEqual(nutrient_data.num_studies, None)
     self.assertEqual(nutrient_data.min_value, None)
@@ -133,15 +167,20 @@ class RowFuncTest(unittest.TestCase):
 
   def test_weight(self):
     ndb_number = '01001'
+    food_description_id = 1
     sequence_number = '1'
     amount = '1'
     measure_description = 'pat (1" sq, 1/3" high)'
     gram_weight = '5'
     num_data_points = ''
     standard_deviation = ''
-    weight = row_funcs.weight([ndb_number, sequence_number, amount,
+    self.row_parser.food_description_ndb_number_map = {
+      ndb_number: food_description_id
+    }
+    weight = self.row_parser.weight([ndb_number, sequence_number, amount,
       measure_description, gram_weight, num_data_points, standard_deviation])
     self.assertEqual(weight.ndb_number, ndb_number)
+    self.assertEqual(weight.food_description_id, food_description_id)
     self.assertEqual(weight.sequence_number, sequence_number)
     self.assertEqual(weight.amount, float(amount))
     self.assertEqual(weight.measure_description, measure_description)
@@ -151,13 +190,18 @@ class RowFuncTest(unittest.TestCase):
 
   def test_footnote(self):
     ndb_number = '02009'
+    food_description_id = 9
     footnote_number = '01'
     footnote_type = 'D'
     nutrient_number = ''
     footnote_text = 'Mix of chili pepper, other spices and salt'
-    footnote = row_funcs.footnote([ndb_number, footnote_number, footnote_type,
-      nutrient_number, footnote_text])
+    self.row_parser.food_description_ndb_number_map = {
+      ndb_number: food_description_id
+    }
+    footnote = self.row_parser.footnote([ndb_number, footnote_number,
+      footnote_type, nutrient_number, footnote_text])
     self.assertEqual(footnote.ndb_number, ndb_number)
+    self.assertEqual(footnote.food_description_id, food_description_id)
     self.assertEqual(footnote.footnote_number, footnote_number)
     self.assertEqual(footnote.footnote_type, footnote_type)
     self.assertEqual(footnote.nutrient_number, None)
@@ -173,7 +217,7 @@ class RowFuncTest(unittest.TestCase):
     issue_state = ''
     start_page = '31'
     end_page = '76'
-    data_source = row_funcs.data_source([data_source_id, authors, title, year,
+    data_source = self.row_parser.data_source([data_source_id, authors, title, year,
       journal, volume_city, issue_state, start_page, end_page])
     print data_source.id
     self.assertEqual(data_source.data_source_id, data_source_id)
@@ -188,12 +232,28 @@ class RowFuncTest(unittest.TestCase):
 
   def test_data_source_link(self):
     ndb_number = '10984'
+    food_description_id = 84
     nutrient_number = '518'
-    data_source_id = 'S3941'
-    data_source_link = row_funcs.data_source_link([ndb_number, nutrient_number,
-      data_source_id])
+    nutrient_definition_id = 18
+    data_source_id_id = 'S3941'
+    data_source_id = 41
+    self.row_parser.food_description_ndb_number_map = {
+      ndb_number: food_description_id
+    }
+    self.row_parser.nutrient_definition_nutrient_number_map = {
+      nutrient_number: nutrient_definition_id
+    }
+    self.row_parser.data_source_id_id_map = {
+      data_source_id_id: data_source_id
+    }
+    data_source_link = self.row_parser.data_source_link([ndb_number,
+      nutrient_number, data_source_id_id])
     self.assertEqual(data_source_link.ndb_number, ndb_number)
+    self.assertEqual(data_source_link.food_description_id, food_description_id)
     self.assertEqual(data_source_link.nutrient_number, nutrient_number)
+    self.assertEqual(data_source_link.nutrient_definition_id,
+      nutrient_definition_id)
+    self.assertEqual(data_source_link.data_source_id_id, data_source_id_id)
     self.assertEqual(data_source_link.data_source_id, data_source_id)
 
 if __name__ == '__main__':

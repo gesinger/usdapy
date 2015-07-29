@@ -27,7 +27,8 @@ class FoodDescription(Base):
 
   id = Column(Integer, primary_key=True)
   ndb_number = Column(String(5), index=True, unique=True, nullable=False)
-  food_group_code = Column(String(4), ForeignKey(FoodGroup.code))
+  food_group_code = Column(String(4), nullable=False)
+  food_group_id = Column(Integer, ForeignKey(FoodGroup.id), nullable=False)
   long_description = Column(String(200), nullable=False)
   short_description = Column(String(60), nullable=False)
   common_name = Column(String(100), nullable=True)
@@ -41,25 +42,27 @@ class FoodDescription(Base):
   fat_factor = Column(Numeric(4, 2), nullable=True)
   carb_factor = Column(Numeric(4, 2), nullable=True)
 
-class Langual(Base):
-  __tablename__ = 'langual'
-
-  id = Column(Integer, primary_key=True)
-  ndb_number = Column(String(5), ForeignKey(FoodDescription.ndb_number),
-    nullable=False)
-  factor_code = Column(String(5), nullable=False)
-  __table_args__ = (
-    Index('idx_ndb_number_factor_code', 'ndb_number', 'factor_code',
-      unique=True),
-  )
-
 class LangualFactor(Base):
   __tablename__ = 'langual_factors'
 
   id = Column(Integer, primary_key=True)
-  factor_code = Column(String(5), ForeignKey(Langual.ndb_number),
-    index=True, unique=True, nullable=False)
+  factor_code = Column(String(5), unique=True, nullable=False)
   description = Column(String(140), nullable=False)
+
+class Langual(Base):
+  __tablename__ = 'langual'
+
+  id = Column(Integer, primary_key=True)
+  ndb_number = Column(String(5), nullable=False)
+  food_description_id = Column(Integer, ForeignKey(FoodDescription.id),
+    nullable=False)
+  factor_code = Column(String(5), nullable=False)
+  langual_factor_id = Column(Integer, ForeignKey(LangualFactor.id),
+    nullable=False)
+  __table_args__ = (
+    Index('idx_ndb_number_factor_code', 'ndb_number', 'factor_code',
+      unique=True),
+  )
 
 class SourceCode(Base):
   __tablename__ = 'source_codes'
@@ -79,18 +82,23 @@ class NutrientData(Base):
   __tablename__ = 'nutrient_data'
 
   id = Column(Integer, primary_key=True)
-  ndb_number = Column(String(5), ForeignKey(FoodDescription.ndb_number),
+  ndb_number = Column(String(5), nullable=False)
+  food_description_id = Column(Integer, ForeignKey(FoodDescription.id),
     nullable=False)
-  nutrient_number = Column(String(3),
-    ForeignKey(NutrientDefinition.nutrient_number), nullable=False)
+  nutrient_number = Column(String(3), nullable=False)
+  nutrient_definition_id = Column(Integer, ForeignKey(NutrientDefinition.id),
+    nullable=False)
   nutrient_value = Column(Numeric(10, 3), nullable=False)
   num_data_points = Column(Integer, nullable=False)
   standard_error = Column(Numeric(8, 3), nullable=True)
-  source_code = Column(String(2), ForeignKey(SourceCode.code), nullable=False)
-  derivation_code = Column(String(4), ForeignKey(DerivationCode.code),
+  source_code_code = Column(String(2), nullable=False)
+  source_code_id = Column(Integer, ForeignKey(SourceCode.id), nullable=False)
+  derivation_code_code = Column(String(4), nullable=True)
+  derivation_code_id = Column(Integer, ForeignKey(DerivationCode.id),
     nullable=True)
-  reference_ndb_number = Column(String(5),
-    ForeignKey(FoodDescription.ndb_number), nullable=True)
+  reference_ndb_number = Column(String(5), nullable=True)
+  reference_food_description_id = Column(Integer,
+    ForeignKey(FoodDescription.id), nullable=True)
   fortified = Column(String(1), nullable=True)
   num_studies = Column(SmallInteger, nullable=True)
   min_value = Column(Numeric(10, 3), nullable=True)
@@ -110,7 +118,8 @@ class Weight(Base):
   __tablename__ = 'weights'
 
   id = Column(Integer, primary_key=True)
-  ndb_number = Column(String(5), ForeignKey(FoodDescription.ndb_number),
+  ndb_number = Column(String(5), nullable=False)
+  food_description_id = Column(Integer, ForeignKey(FoodDescription.id),
     nullable=False)
   sequence_number = Column(String(2), nullable=False)
   amount = Column(Numeric(5, 3), nullable=False)
@@ -127,12 +136,14 @@ class Footnote(Base):
   __tablename__ = 'footnotes'
 
   id = Column(Integer, primary_key=True)
-  ndb_number = Column(String(5), ForeignKey(FoodDescription.ndb_number),
+  ndb_number = Column(String(5), nullable=False)
+  food_description_id = Column(Integer, ForeignKey(FoodDescription.id),
     nullable=False)
   footnote_number = Column(String(4), nullable=False)
   footnote_type = Column(String(1), nullable=False)
-  nutrient_number = Column(String(3),
-    ForeignKey(NutrientDefinition.nutrient_number), nullable=True)
+  nutrient_number = Column(String(3), nullable=True)
+  nutrient_definition_id = Column(Integer, ForeignKey(NutrientDefinition.id),
+    nullable=True)
   footnote_text = Column(String(200), nullable=False)
 
 class DataSource(Base):
@@ -154,12 +165,14 @@ class DataSourceLink(Base):
   __tablename__ = 'data_sources_link'
 
   id = Column(Integer, primary_key=True)
-  ndb_number = Column(String(5), ForeignKey(FoodDescription.ndb_number),
+  ndb_number = Column(String(5), nullable=False)
+  food_description_id = Column(Integer, ForeignKey(FoodDescription.id),
     nullable=False)
-  nutrient_number = Column(String(3),
-    ForeignKey(NutrientDefinition.nutrient_number), nullable=False)
-  data_source_id = Column(String(6), ForeignKey(DataSource.data_source_id),
+  nutrient_number = Column(String(3), nullable=False)
+  nutrient_definition_id = Column(Integer, ForeignKey(NutrientDefinition.id),
     nullable=False)
+  data_source_id_id = Column(String(6), nullable=False)
+  data_source_id = Column(Integer, ForeignKey(DataSource.id), nullable=False)
   __table_args__ = (
     Index('idx_ndb_number_nutrient_number_data_source_id', 'ndb_number',
       'nutrient_number', 'data_source_id', unique=True),
